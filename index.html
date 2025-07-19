@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skincare Shop - Products</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="static/style.css">
+    <link rel="stylesheet" href="static/pink_theme.css">
+    <style>
+        .btn-pink {
+            background-color: #e57373;
+            border-color: #e57373;
+            color: white;
+        }
+        .btn-pink:hover {
+            background-color: #d32f2f;
+            border-color: #d32f2f;
+            color: white;
+        }
+        .bg-pink {
+            background-color: #e57373 !important;
+        }
+        .product-card {
+            transition: transform 0.2s;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/" style="color: #e57373; font-weight: bold;">Skincare Shop</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Products</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/customers">Customers</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/staff">Staff</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/orders">Orders</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/login">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/register">Register</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container-fluid my-5 px-md-5">
+        <h1 class="text-center mb-4">Product Management</h1>
+
+        <div id="messages"></div>
+
+        <!-- Search Form -->
+        <div class="card mb-4">
+            <div class="card-header">
+                Search Products
+            </div>
+            <div class="card-body">
+                <form id="searchForm" class="row g-3">
+                    <div class="col-md-8">
+                        <input type="text" name="search" class="form-control" placeholder="Search products by name..." id="searchInput">
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary me-2">Search</button>
+                        <button type="button" class="btn btn-secondary" onclick="clearSearch()">Clear</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                Add New Product
+            </div>
+            <div class="card-body">
+                <form id="addProductForm" class="row g-3" enctype="multipart/form-data">
+                    <div class="col-md-6">
+                        <label for="code" class="form-label">Product Code</label>
+                        <input type="text" id="code" name="code" class="form-control" placeholder="Code Of Product" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="name" class="form-label">Product Name</label>
+                        <input type="text" id="name" name="name" class="form-control" placeholder="Name Of Product" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="category" class="form-label">Category</label>
+                        <input type="text" id="category" name="category" class="form-control" placeholder="Category" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="qty" class="form-label">Quantity</label>
+                        <input type="number" id="qty" name="qty" class="form-control" placeholder="Enter Quantity" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="price" class="form-label">Price</label>
+                        <input type="number" id="price" step="0.01" name="price" class="form-control" placeholder="Enter Price" required>
+                    </div>
+                    <div class="col-md-12">
+                        <label for="image" class="form-label">Product Image</label>
+                        <input type="file" id="image" name="image" class="form-control">
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary w-100">Add Product</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <h2 class="text-center my-4">Product List</h2>
+        
+        <div id="searchResults"></div>
+        
+        <div id="productsContainer" class="row row-cols-1 row-cols-md-2 row-cols-xl-4 g-4">
+            <!-- Products will be loaded here via JavaScript -->
+        </div>
+        
+        <div class="text-center mt-4">
+            <a href="/customers" class="btn btn-pink">Manage Customers</a>
+            <a href="/orders" class="btn btn-pink">Manage Orders</a>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Load products on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadProducts();
+        });
+
+        // Search form handler
+        document.getElementById('searchForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const searchQuery = document.getElementById('searchInput').value;
+            loadProducts(searchQuery);
+        });
+
+        // Add product form handler
+        document.getElementById('addProductForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            addProduct();
+        });
+
+        function loadProducts(searchQuery = '') {
+            let url = '/api/products';
+            if (searchQuery) {
+                url += `?search=${encodeURIComponent(searchQuery)}`;
+            }
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    displayProducts(data.products, searchQuery);
+                })
+                .catch(error => {
+                    console.error('Error loading products:', error);
+                    showMessage('Error loading products', 'danger');
+                });
+        }
+
+        function displayProducts(products, searchQuery = '') {
+            const container = document.getElementById('productsContainer');
+            const searchResults = document.getElementById('searchResults');
+
+            // Clear previous content
+            container.innerHTML = '';
+
+            // Show search results message
+            if (searchQuery) {
+                if (products.length > 0) {
+                    searchResults.innerHTML = `<div class="alert alert-info text-center">Found ${products.length} product(s) matching "${searchQuery}"</div>`;
+                } else {
+                    searchResults.innerHTML = `<div class="alert alert-info text-center">No products found matching "${searchQuery}"</div>`;
+                }
+            } else {
+                searchResults.innerHTML = '';
+            }
+
+            if (products.length === 0) {
+                if (searchQuery) {
+                    container.innerHTML = `
+                        <div class="text-center mt-4">
+                            <p class="text-muted">No products found matching "${searchQuery}".</p>
+                            <button onclick="clearSearch()" class="btn btn-primary">View All Products</button>
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = '<div class="text-center mt-4"><p class="text-muted">No products available.</p></div>';
+                }
+                return;
+            }
+
+            products.forEach(product => {
+                const productCard = document.createElement('div');
+                productCard.className = 'col';
+                productCard.innerHTML = `
+                    <div class="card h-100 text-center shadow-sm product-card">
+                        <img src="${product.image_url ? '/static/uploads/' + product.image_url : 'https://via.placeholder.com/150'}" 
+                             class="card-img-top" alt="${product.name}" width="373px" height="497px">
+                        <div class="card-body">
+                            <h5 class="card-title">${product.name}</h5>
+                            <span class="badge bg-pink mb-2">${product.category}</span>
+                            <p class="card-text mb-1"><small class="text-muted">Code: ${product.code}</small></p>
+                            <p class="card-text"><strong>In Stock:</strong> ${product.qty}</p>
+                            <h4 class="card-text text-success fw-bold my-3">$${parseFloat(product.price).toFixed(2)}</h4>
+                        </div>
+                        <div class="card-footer bg-transparent border-top-0">
+                            <button onclick="editProduct(${product.id})" class="btn btn-secondary btn-sm">Edit</button>
+                            <button onclick="deleteProduct(${product.id})" class="btn btn-danger btn-sm">Delete</button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(productCard);
+            });
+        }
+
+        function addProduct() {
+            const formData = new FormData(document.getElementById('addProductForm'));
+            
+            fetch('/api/products', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage('Product added successfully!', 'success');
+                    document.getElementById('addProductForm').reset();
+                    loadProducts();
+                } else {
+                    showMessage(data.message || 'Error adding product', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error adding product:', error);
+                showMessage('Error adding product', 'danger');
+            });
+        }
+
+        function editProduct(id) {
+            window.location.href = `/edit_product/${id}`;
+        }
+
+        function deleteProduct(id) {
+            if (confirm('Are you sure you want to delete this product?')) {
+                fetch(`/api/products/${id}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showMessage('Product deleted successfully!', 'success');
+                        loadProducts();
+                    } else {
+                        showMessage(data.message || 'Error deleting product', 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error deleting product:', error);
+                    showMessage('Error deleting product', 'danger');
+                });
+            }
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            loadProducts();
+        }
+
+        function showMessage(message, type) {
+            const messagesDiv = document.getElementById('messages');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            messagesDiv.appendChild(alertDiv);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+    </script>
+</body>
+</html> 

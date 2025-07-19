@@ -1,0 +1,37 @@
+services:
+  - type: web
+    name: skincare-shop-backend
+    env: python
+    plan: free
+    buildCommand: |
+      pip install -r requirements.txt
+      python deploy_setup.py
+    startCommand: gunicorn app:app
+    envVars:
+      - key: DB_HOST
+        fromService:
+          type: mysql
+          name: skincare-db
+          property: host
+      - key: DB_NAME
+        fromService:
+          type: mysql
+          name: skincare-db
+          property: database
+      - key: DB_USER
+        fromService:
+          type: mysql
+          name: skincare-db
+          property: user
+      - key: DB_PASSWORD
+        fromService:
+          type: mysql
+          name: skincare-db
+          property: password
+      - key: SECRET_KEY
+        generateValue: true
+
+  - type: mysql
+    name: skincare-db
+    plan: free
+    region: ohio

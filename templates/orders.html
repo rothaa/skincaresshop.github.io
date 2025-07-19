@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block title %}Orders{% endblock %}
+
+{% block content %}
+    <h2 class="mb-4 text-center">Order Management</h2>
+
+    <div class="card mb-4">
+        <div class="card-header">Place New Order</div>
+        <div class="card-body">
+            <form action="{{ url_for('add_order') }}" method="POST" id="orderForm" class="row g-3">
+                <div class="col-md-6">
+                    <label for="customer" class="form-label">Select Customer</label>
+                    <select name="customer_id" id="customer" class="form-select" required>
+                        <option value="">Choose a customer</option>
+                        {% for customer in customers %}
+                            <option value="{{ customer.id }}">{{ customer.full_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12" id="productRows">
+                    <div class="product-row row align-items-center mb-2">
+                        <div class="col-md-6">
+                            <select name="product_ids[]" class="form-select" required>
+                                <option value="">Select Product</option>
+                                {% for product in products %}
+                                    <option value="{{ product.id }}" data-price="{{ product.price }}">
+                                        {{ product.name }} - ${{ "%.2f"|format(product.price) }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="number" name="quantities[]" value="1" min="1" class="form-control" required>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="button" class="remove-product-btn btn btn-danger btn-sm" onclick="removeProduct(this)" style="display:none;">Remove</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <button type="button" class="add-product-btn btn btn-pink btn-sm mb-2" onclick="addProduct()" style="background: #f8bbd0; color: #fff; border: none;">+ Add Another Product</button>
+                </div>
+                <div class="col-12 total-section" style="background: #f8f9fa; border-radius: 4px;">
+                    <strong>Total: $<span id="orderTotal">0.00</span></strong>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary w-100">Place Order</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Search Form -->
+    <div class="card mb-4">
+        <div class="card-header">
+            Search Orders
+        </div>
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('orders') }}" class="row g-3">
+                <div class="col-md-8">
+                    <input type="text" name="search" class="form-control" placeholder="Search orders by order code or customer name..." value="{{ filter_search or '' }}">
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary me-2">Search</button>
+                    <a href="{{ url_for('orders') }}" class="btn btn-secondary">Clear</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Search Results Message -->
+    {% if filter_search %}
+        <div class="alert alert-info text-center">
+            {% if orders %}
+                Found {{ orders|length }} order(s) matching "{{ filter_search }}"
+            {% else %}
+                No orders found matching "{{ filter_search }}"
+            {% endif %}
+        </div>
+    {% endif %}
+
+    <!-- Filter/Search/Export Form -->
+    <form method="get" action="{{ url_for('orders') }}" style="margin-bottom: 20px; background: #ffe4ec; padding: 8px 12px; border-radius: 4px; border: 1px solid #f8bbd0;">
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 15px;">
+            <label for="filter_customer_id" style="color: #d63384; font-weight: 500; margin-right: 2px;">Customer:</label>
+            <select name="customer_id" id="filter_customer_id" style="border: 1px solid #f8bbd0; border-radius: 3px; padding: 2px 6px; background: #fff0f6;">
+                <option value="">All</option>
+                {% for customer in customers %}
+                    <option value="{{ customer.id }}" {% if filter_customer_id == customer.id|string %}selected{% endif %}>{{ customer.full_name }}</option>
+                {% endfor %}
+            </select>
+            <label for="filter_start_date" style="color: #d63384; font-weight: 500; margin-left: 8px; margin-right: 2px;">Start:</label>
+            <input type="date" name="start_date" id="filter_start_date" value="{{ filter_start_date|default('') }}" style="border: 1px solid #f8bbd0; border-radius: 3px; padding: 2px 6px; background: #fff0f6;">
+            <label for="filter_end_date" style="color: #d63384; font-weight: 500; margin-left: 8px; margin-right: 2px;">End:</label>
+            <input type="date" name="end_date" id="filter_end_date" value="{{ filter_end_date|default('') }}" style="border: 1px solid #f8bbd0; border-radius: 3px; padding: 2px 6px; background: #fff0f6;">
+            <label for="filter_search" style="color: #d63384; font-weight: 500; margin-left: 8px; margin-right: 2px;">Search:</label>
+            <input type="text" name="search" id="filter_search" placeholder="Order code, customer, product" value="{{ filter_search|default('') }}" style="border: 1px solid #f8bbd0; border-radius: 3px; padding: 2px 6px; background: #fff0f6;">
+            <button type="submit" style="padding: 4px 14px; background: #f8bbd0; color: #fff; border: none; border-radius: 3px; font-weight: 500; margin-left: 8px;">Filter</button>
+            <a href="{{ url_for('export_orders', customer_id=filter_customer_id, start_date=filter_start_date, end_date=filter_end_date, search=filter_search) }}" style="padding: 4px 14px; background: #d63384; color: #fff; border: none; border-radius: 3px; text-decoration: none; font-weight: 500; margin-left: 4px;">Export CSV</a>
+        </div>
+    </form>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="alert alert-info">
+                {{ messages[0] }}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <div class="card">
+        <div class="card-header">Current Orders</div>
+        <div class="card-body table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead class="thead-pink">
+                    <tr>
+                        <th>Order Code</th>
+                        <th>Customer</th>
+                        <th>Items</th>
+                        <th>Total</th>
+                        <th>Order Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td>{{ order.code }}</td>
+                        <td>{{ order.customer }}</td>
+                        <td>
+                            <ul class="mb-0">
+                                {% for item in order_items[order.id] %}
+                                    <li>{{ item.name }} ({{ item.quantity }}) - ${{ "%.2f"|format(item.subtotal) }}</li>
+                                {% endfor %}
+                            </ul>
+                        </td>
+                        <td>${{ "%.2f"|format(order.total) }}</td>
+                        <td>{{ order.order_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            <a href="{{ url_for('edit_order', id=order.id) }}" class="btn btn-secondary btn-sm mb-1 mb-md-0">Edit</a>
+                            <a href="{{ url_for('delete_order', id=order.id) }}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')">Delete</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- No Orders Found Message -->
+    {% if not orders and filter_search %}
+        <div class="text-center mt-4">
+            <p class="text-muted">No orders found matching "{{ filter_search }}".</p>
+            <a href="{{ url_for('orders') }}" class="btn btn-primary">View All Orders</a>
+        </div>
+    {% endif %}
+
+    <script>
+        function addProduct() {
+            const container = document.getElementById('productRows');
+            const newRow = container.children[0].cloneNode(true);
+            // Reset the values
+            newRow.querySelector('select').value = '';
+            newRow.querySelector('input[type="number"]').value = 1;
+            // Show the remove button
+            newRow.querySelector('.remove-product-btn').style.display = 'inline';
+            // Add event listeners
+            newRow.querySelector('select').addEventListener('change', updateTotal);
+            newRow.querySelector('input').addEventListener('input', updateTotal);
+            container.appendChild(newRow);
+            updateTotal();
+        }
+        function removeProduct(button) {
+            if (document.getElementById('productRows').children.length > 1) {
+                button.closest('.product-row').remove();
+                updateTotal();
+            }
+        }
+        function updateTotal() {
+            let total = 0;
+            const rows = document.querySelectorAll('.product-row');
+            rows.forEach(row => {
+                const select = row.querySelector('select');
+                const quantity = parseInt(row.querySelector('input').value) || 0;
+                const price = parseFloat(select.options[select.selectedIndex]?.dataset?.price || 0);
+                total += quantity * price;
+            });
+            document.getElementById('orderTotal').textContent = total.toFixed(2);
+        }
+        // Add initial event listeners
+        document.querySelectorAll('.product-row select').forEach(select => {
+            select.addEventListener('change', updateTotal);
+        });
+        document.querySelectorAll('.product-row input').forEach(input => {
+            input.addEventListener('input', updateTotal);
+        });
+        // Initial total calculation
+        updateTotal();
+    </script>
+{% endblock %} 

@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Staff{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h1 class="text-center mb-4">Edit Staff Member</h1>
+        <div class="card mb-4">
+            <div class="card-header">
+                Editing: {{ staff_member.full_name }}
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('edit_staff', id=staff_member.id) }}" method="post" enctype="multipart/form-data">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label for="full_name" class="form-label">Full Name</label>
+                                <input type="text" id="full_name" name="full_name" class="form-control" value="{{ staff_member.full_name }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="position" class="form-label">Position</label>
+                                <input type="text" id="position" name="position" class="form-control" value="{{ staff_member.position }}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <label class="form-label">Profile Picture</label>
+                            <img src="{{ url_for('static', filename='uploads/' + staff_member.profile_picture) if staff_member.profile_picture else 'https://via.placeholder.com/150' }}"
+                                 class="img-thumbnail rounded-circle mb-2" 
+                                 alt="Profile picture"
+                                 style="width: 120px; height: 120px; object-fit: cover;">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="phone" class="form-label">Phone</label>
+                                <input type="text" id="phone" name="phone" class="form-control" value="{{ staff_member.phone }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" id="email" name="email" class="form-control" value="{{ staff_member.email }}" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Address</label>
+                        <textarea id="address" name="address" class="form-control" rows="3">{{ staff_member.address }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="gender" class="form-label">Gender</label>
+                        <select id="gender" name="gender" class="form-select">
+                            <option value="">Select Gender</option>
+                            <option value="Male" {% if staff_member.gender == 'Male' %}selected{% endif %}>Male</option>
+                            <option value="Female" {% if staff_member.gender == 'Female' %}selected{% endif %}>Female</option>
+                            <option value="Other" {% if staff_member.gender == 'Other' %}selected{% endif %}>Other</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="profile_picture" class="form-label">Upload New Picture</label>
+                        <input type="file" id="profile_picture" name="profile_picture" class="form-control" accept="image/png, image/jpeg">
+                        <small class="form-text text-muted">Leave blank to keep the current picture.</small>
+                    </div>
+                    
+                    <input type="hidden" name="current_profile_picture" value="{{ staff_member.profile_picture or '' }}">
+                    
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                    <a href="{{ url_for('staff') }}" class="btn btn-secondary">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,103 @@
+/*-
+ * Pre-existing CSS was removed as it was not compatible with Bootstrap 5.
+ * The new styles below are designed to complement the Bootstrap framework.
+ */
+
+body {
+    background-color: #fdfaf6; /* Soft cream background */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.container {
+    background-color: #ffffff;
+    border-radius: 15px;
+    padding: 40px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    margin-top: 50px;
+}
+
+h1, h2 {
+    color: #e57373; /* Soft pink for headings */
+    font-weight: 300;
+}
+
+.card {
+    border: none;
+    border-radius: 10px;
+    background-color: #fff8f8; /* Very light pink card background */
+}
+
+.card-header {
+    background-color: #e57373; /* Soft pink header */
+    color: white;
+    font-weight: bold;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+.form-control:focus {
+    border-color: #e57373;
+    box-shadow: 0 0 0 0.2rem rgba(229, 115, 115, 0.25);
+}
+
+.btn {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary {
+    background-color: #81c784; /* Mint green for primary buttons */
+    border-color: #81c784;
+}
+
+.btn-primary:hover {
+    background-color: #66bb6a;
+    border-color: #66bb6a;
+}
+
+.btn-danger {
+    background-color: #ffab91; /* Soft coral for delete */
+    border-color: #ffab91;
+}
+
+.btn-danger:hover {
+    background-color: #ff8a65;
+    border-color: #ff8a65;
+}
+
+.btn-pink {
+    background-color: #fce4ec; /* Light pink background */
+    border-color: #f8bbd0;
+    color: #c2185b; /* Darker pink text for readability */
+}
+
+.btn-pink:hover {
+    background-color: #f8bbd0; /* A slightly darker pink for hover */
+    border-color: #f48fb1;
+    color: #ad1457;
+}
+
+.thead-pink {
+    background-color: #f78da7 !important; /* Main pink for navbar */
+    color: white !important;
+}
+
+.table {
+    border-radius: 10px;
+    overflow: hidden; /* This is key for border-radius on tables */
+}
+
+.table thead.table-dark {
+    background-color: #e57373; /* Soft pink for table header */
+    color: white;
+}
+
+.bg-pink {
+    background-color: #fce4ec !important;
+    color: #e57373 !important;
+}
+

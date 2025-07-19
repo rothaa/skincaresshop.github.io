@@ -1,0 +1,34 @@
+/* 
+ * A soft pink theme for the Skincare Shop.
+ */
+
+body {
+    background-color: #fff4f6; /* Soft pink background */
+}
+
+.navbar {
+    background-color: #f78da7 !important; /* Main pink for navbar, using !important to override inline style */
+}
+
+.navbar-brand, .nav-link {
+    color: white !important; /* White text for contrast on the pink navbar */
+}
+
+.card-header {
+    background-color: #f78da7; /* Matching pink for card headers */
+}
+
+.btn-primary {
+    background-color: #f78da7;
+    border-color: #f78da7;
+}
+
+.btn-primary:hover {
+    background-color: #f57195; /* A slightly darker pink for hover */
+    border-color: #f57195;
+}
+
+.table thead.table-dark {
+    background-color: #f78da7; /* Matching pink for table headers */
+    color: white;
+}

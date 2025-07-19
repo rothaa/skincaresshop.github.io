@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Order{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Edit Order</h2>
+    <div class="card">
+        <div class="card-header bg-pink text-white">
+            <h4 class="mb-0">Order #{{ order.code }}</h4>
+        </div>
+        <div class="card-body">
+            <form action="{{ url_for('edit_order', id=order.id) }}" method="post" id="editOrderForm">
+                <div class="form-group mb-3">
+                    <label for="customer_id">Customer:</label>
+                    <select class="form-control" id="customer_id" name="customer_id" required>
+                        {% for customer in customers %}
+                        <option value="{{ customer.id }}" {% if customer.id == order.customer_id %}selected{% endif %}>
+                            {{ customer.full_name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div id="productRows">
+                    {% for item in order_items %}
+                    <div class="product-row row mb-3">
+                        <div class="col-md-5">
+                            <select class="form-control product-select" name="product_ids[]" required>
+                                <option value="">Select Product</option>
+                                {% for product in products %}
+                                <option value="{{ product.id }}" 
+                                        data-price="{{ product.price }}"
+                                        {% if product.id == item.product_id %}selected{% endif %}>
+                                    {{ product.name }} (${{ "%.2f"|format(product.price) }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="number" class="form-control quantity-input" 
+                                   name="quantities[]" min="1" 
+                                   value="{{ item.quantity }}" required>
+                        </div>
+                        <div class="col-md-3">
+                            <span class="subtotal form-control-plaintext">${{ "%.2f"|format(item.subtotal) }}</span>
+                        </div>
+                        <div class="col-md-1">
+                            <button type="button" class="btn btn-danger remove-row" {% if loop.index == 1 %}style="display: none;"{% endif %}>&times;</button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <button type="button" class="btn btn-secondary" id="addProduct">Add Another Product</button>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <h5>Total: $<span id="orderTotal">{{ "%.2f"|format(order.total) }}</span></h5>
+                        <button type="submit" class="btn btn-primary">Update Order</button>
+                        <a href="{{ url_for('orders') }}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const productRows = document.getElementById('productRows');
+    const addProductBtn = document.getElementById('addProduct');
+    const orderTotal = document.getElementById('orderTotal');
+    
+    function updateSubtotals() {
+        let total = 0;
+        document.querySelectorAll('.product-row').forEach(row => {
+            const select = row.querySelector('.product-select');
+            const quantity = row.querySelector('.quantity-input');
+            const subtotal = row.querySelector('.subtotal');
+            
+            if (select.value) {
+                const price = parseFloat(select.options[select.selectedIndex].dataset.price);
+                const qty = parseInt(quantity.value);
+                const subtotalValue = price * qty;
+                subtotal.textContent = '$' + subtotalValue.toFixed(2);
+                total += subtotalValue;
+            }
+        });
+        orderTotal.textContent = total.toFixed(2);
+    }
+    
+    function addProductRow() {
+        const template = productRows.children[0].cloneNode(true);
+        template.querySelector('.product-select').value = '';
+        template.querySelector('.quantity-input').value = '1';
+        template.querySelector('.subtotal').textContent = '$0.00';
+        template.querySelector('.remove-row').style.display = 'block';
+        productRows.appendChild(template);
+        
+        // Add event listeners to new row
+        setupRowEventListeners(template);
+    }
+    
+    function setupRowEventListeners(row) {
+        row.querySelector('.product-select').addEventListener('change', updateSubtotals);
+        row.querySelector('.quantity-input').addEventListener('input', updateSubtotals);
+        row.querySelector('.remove-row').addEventListener('click', function() {
+            if (productRows.children.length > 1) {
+                row.remove();
+                updateSubtotals();
+            }
+        });
+    }
+    
+    // Setup initial rows
+    document.querySelectorAll('.product-row').forEach(setupRowEventListeners);
+    
+    // Add product button
+    addProductBtn.addEventListener('click', addProductRow);
+});
+</script>
+{% endblock %} 
